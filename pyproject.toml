@@ -10,10 +10,8 @@ dependencies = [
     "pymupdf>=1.24",
     "docling>=2.0",
     "langdetect>=1.0",
+    "pyyaml>=6.0",
+    "pytest>=8.0",
 ]
-optional-dependencies = {
-    "dev" = ["pytest>=8.0"],
-}
-
-[dependency-groups]
+[project.optional-dependencies]
 dev = ["pytest>=8.0"]
