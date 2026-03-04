@@ -1,0 +1,12 @@
+.venv/
+data/
+Project_Documenation_TheDocumentIntelligenceRefinery.md
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+*.pyzw
+*.pyz

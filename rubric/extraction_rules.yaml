@@ -1,0 +1,20 @@
+# Extraction strategy thresholds and chunking rules
+# Refined empirically from Phase 0 (see DOMAIN_NOTES.md Section 7).
+# Phase 2 will consume these; new document types should be onboarded here, not in code.
+
+triage:
+  # Origin: treat as scanned when image dominates or text is absent
+  scanned_image_ratio_min: 0.5   # avg image_area_ratio > this -> scanned
+  low_text_page_char_max: 100    # char_count per page below this -> low confidence
+  low_text_pages_majority: true   # if majority of pages are low_text -> scanned
+
+  # Strategy A (fast text) allowed only when:
+  fast_text:
+    min_char_density_per_1k_pt2: 0.5
+    max_image_ratio: 0.5
+    require_font_metadata: true
+
+chunking:
+  # Constitution rules (Phase 3): table cells with header, caption with figure,
+  # numbered list as single LDU, section header as parent metadata, cross-refs resolved.
+  max_tokens_per_ldu: 512  # tune as needed
