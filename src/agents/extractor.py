@@ -8,22 +8,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+from src.config import get_extraction_config, get_openrouter_api_key
 from src.models.document_profile import DocumentProfile, EstimatedExtractionCost
 from src.models.extraction import ExtractionResult
 from src.strategies.fast_text import FastTextExtractor
 from src.strategies.layout import LayoutExtractor
 from src.strategies.vision import VisionExtractor
-
-
-def _load_extraction_config(config_path: Path | None = None) -> dict[str, Any]:
-    if config_path is None:
-        config_path = Path.cwd() / "rubric" / "extraction_rules.yaml"
-    if not config_path.exists():
-        return {}
-    import yaml
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data.get("extraction", {})
 
 
 def _append_ledger_entry(ledger_path: Path, entry: dict) -> None:
@@ -43,15 +33,15 @@ class ExtractionRouter:
         ledger_path: Path | None = None,
         vision_api_key: str | None = None,
     ):
-        self._config_path = config_path
-        self._config = _load_extraction_config(config_path)
+        self._config = get_extraction_config()
         self._threshold = self._config.get("confidence_escalation_threshold", 0.5)
         self._ledger_path = ledger_path or (Path.cwd() / ".refinery" / "extraction_ledger.jsonl")
-        self._fast = FastTextExtractor(config_path)
+        self._fast = FastTextExtractor()
         self._layout = LayoutExtractor()
-        self._vision_api_key = vision_api_key
+        api_key = vision_api_key or get_openrouter_api_key()
+        self._vision_api_key = api_key
         try:
-            self._vision = VisionExtractor(config_path, api_key=vision_api_key)
+            self._vision = VisionExtractor(api_key=api_key)
         except ValueError:
             self._vision = None
 

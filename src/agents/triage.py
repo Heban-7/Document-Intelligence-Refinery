@@ -9,6 +9,7 @@ from typing import Any
 
 import pdfplumber
 
+from src.config import get_triage_config
 from src.models.common import doc_id_from_path
 from src.models.document_profile import (
     DocumentProfile,
@@ -17,17 +18,6 @@ from src.models.document_profile import (
     LayoutComplexity,
     OriginType,
 )
-
-
-def _load_triage_config(config_path: Path | None = None) -> dict[str, Any]:
-    if config_path is None:
-        config_path = Path.cwd() / "rubric" / "extraction_rules.yaml"
-    if not config_path.exists():
-        return {}
-    import yaml
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data.get("triage", {})
 
 
 def _page_metrics(page) -> dict[str, Any]:
@@ -207,7 +197,7 @@ class TriageAgent:
         config_path: Path | None = None,
         domain_classifier: DomainHintClassifier | None = None,
     ):
-        self._config = _load_triage_config(config_path)
+        self._config = get_triage_config()
         self._domain_classifier = domain_classifier or DomainHintClassifier()
 
     def run(self, pdf_path: str | Path) -> DocumentProfile:

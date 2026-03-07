@@ -10,6 +10,7 @@ from typing import Any
 
 import pdfplumber
 
+from src.config import get_fast_text_config
 from src.models.common import doc_id_from_path
 from src.models.document_profile import DocumentProfile
 from src.models.extraction import (
@@ -22,24 +23,6 @@ from src.models.extraction import (
     Table,
     TableCell,
 )
-
-
-def _load_extraction_config(config_path: Path | None = None) -> dict[str, Any]:
-    if config_path is None:
-        config_path = Path.cwd() / "rubric" / "extraction_rules.yaml"
-    if not config_path.exists():
-        return {}
-    import yaml
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    triage = data.get("triage", {})
-    fast = triage.get("fast_text", {})
-    return {
-        "min_char_density_per_1k_pt2": fast.get("min_char_density_per_1k_pt2", 0.5),
-        "max_image_ratio": fast.get("max_image_ratio", 0.5),
-        "require_font_metadata": fast.get("require_font_metadata", True),
-        "low_text_page_char_max": triage.get("low_text_page_char_max", 100),
-    }
 
 
 def _page_metrics(page) -> dict[str, Any]:
@@ -106,7 +89,7 @@ class FastTextExtractor:
     name = "fast_text"
 
     def __init__(self, config_path: Path | None = None):
-        self._config = _load_extraction_config(config_path)
+        self._config = get_fast_text_config()
 
     def extract(self, pdf_path: Path | str, profile: DocumentProfile) -> ExtractionResult:
         path = Path(pdf_path)

@@ -18,18 +18,8 @@ from src.models.extraction import (
     Table,
     TextBlock,
 )
+from src.config import get_chunking_config
 from src.models.chunking import ChunkType, LDU
-
-
-def _load_chunking_config(config_path: Path | None = None) -> dict[str, Any]:
-    if config_path is None:
-        config_path = Path.cwd() / "rubric" / "extraction_rules.yaml"
-    if not config_path.exists():
-        return {}
-    import yaml
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data.get("chunking", {})
 
 
 def _token_count_approx(text: str) -> int:
@@ -96,7 +86,7 @@ class ChunkingEngine:
     """
 
     def __init__(self, config_path: Path | None = None):
-        self._config = _load_chunking_config(config_path)
+        self._config = get_chunking_config()
         self._max_tokens = self._config.get("max_tokens_per_ldu", 512)
 
     def run(self, doc: ExtractedDocument) -> list[LDU]:

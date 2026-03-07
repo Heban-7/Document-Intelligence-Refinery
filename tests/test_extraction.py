@@ -5,7 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from src.agents.extractor import ExtractionRouter, _load_extraction_config
+from src.agents.extractor import ExtractionRouter
+from src.config import get_extraction_config, get_fast_text_config
 from src.models.document_profile import (
     DocumentProfile,
     EstimatedExtractionCost,
@@ -13,7 +14,7 @@ from src.models.document_profile import (
     OriginType,
     DomainHint,
 )
-from src.strategies.fast_text import FastTextExtractor, _confidence_for_page, _load_extraction_config as _fast_text_config
+from src.strategies.fast_text import FastTextExtractor, _confidence_for_page
 
 
 @pytest.fixture
@@ -22,12 +23,25 @@ def repo_root() -> Path:
 
 
 def test_load_extraction_config(repo_root):
-    config = _load_extraction_config(repo_root / "rubric" / "extraction_rules.yaml")
-    assert "confidence_escalation_threshold" in config or config == {}
+    import os
+    from src import config as cfg
+    cfg._refinery_root = None
+    os.environ["REFINERY_REPO_ROOT"] = str(repo_root)
+    try:
+        config = get_extraction_config()
+        assert "confidence_escalation_threshold" in config or config == {}
+    finally:
+        os.environ.pop("REFINERY_REPO_ROOT", None)
+        cfg._refinery_root = None
+
+
+def test_fast_text_config():
+    config = get_fast_text_config()
+    assert "min_char_density_per_1k_pt2" in config or config == {}
 
 
 def test_fast_text_confidence_high():
-    config = _fast_text_config()
+    config = get_fast_text_config()
     metrics = {
         "char_density_per_1k_pt2": 2.0,
         "image_area_ratio": 0.1,
@@ -38,7 +52,7 @@ def test_fast_text_confidence_high():
 
 
 def test_fast_text_confidence_low():
-    config = _fast_text_config()
+    config = get_fast_text_config()
     metrics = {
         "char_density_per_1k_pt2": 0.0,
         "image_area_ratio": 1.0,
@@ -106,7 +120,7 @@ def test_fast_extractor_on_native_pdf(corpus_pdfs, repo_root, tmp_path):
         domain_hint=DomainHint.GENERAL,
         estimated_extraction_cost=EstimatedExtractionCost.FAST_TEXT_SUFFICIENT,
     )
-    extractor = FastTextExtractor(repo_root / "rubric" / "extraction_rules.yaml")
+    extractor = FastTextExtractor()
     result = extractor.extract(native, profile)
     assert result.document.doc_id
     assert len(result.document.pages) >= 1

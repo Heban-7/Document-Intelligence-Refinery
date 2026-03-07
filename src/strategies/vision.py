@@ -1,19 +1,23 @@
 """
 Strategy C: Vision-augmented extraction via OpenRouter (VLM).
 Use for scanned documents or when Strategy A/B confidence is below threshold.
-Budget guard: cap cost per document via extraction_rules.yaml.
+Budget guard: cap cost per document via config (extraction_rules.yaml or REFINERY_VISION_BUDGET_USD).
 """
 from __future__ import annotations
 
 import base64
 import json
-import os
 import time
 from pathlib import Path
 from typing import Any
 
 import fitz  # pymupdf
 
+from src.config import (
+    get_openrouter_api_key,
+    get_openrouter_vlm_model,
+    get_vision_budget_max_usd,
+)
 from src.models.common import doc_id_from_path
 from src.models.document_profile import DocumentProfile
 from src.models.extraction import (
@@ -25,21 +29,6 @@ from src.models.extraction import (
     TextBlock,
     Table,
 )
-
-
-def _load_vision_config(config_path: Path | None = None) -> dict[str, Any]:
-    if config_path is None:
-        config_path = Path.cwd() / "rubric" / "extraction_rules.yaml"
-    if not config_path.exists():
-        return {}
-    import yaml
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    ext = data.get("extraction", {})
-    return {
-        "vision_budget_max_usd_per_doc": ext.get("vision_budget_max_usd_per_doc", 2.0),
-        "openrouter_model": os.environ.get("OPENROUTER_VLM_MODEL", "google/gemini-2.0-flash-exp:free"),
-    }
 
 
 def _page_to_base64_image(path: Path, page_index: int, dpi: int = 150) -> str:
@@ -97,8 +86,7 @@ class VisionExtractor:
     name = "vision"
 
     def __init__(self, config_path: Path | None = None, api_key: str | None = None):
-        self._config = _load_vision_config(config_path)
-        self._api_key = api_key or os.environ.get("OPENROUTER_API_KEY", "")
+        self._api_key = api_key or get_openrouter_api_key()
         if not self._api_key:
             raise ValueError("OPENROUTER_API_KEY must be set for VisionExtractor")
 
@@ -108,8 +96,8 @@ class VisionExtractor:
             raise FileNotFoundError(f"PDF not found: {path}")
         doc_id = doc_id_from_path(path)
         start = time.perf_counter()
-        budget_max = self._config.get("vision_budget_max_usd_per_doc", 2.0)
-        model = self._config.get("openrouter_model", "google/gemini-2.0-flash-exp:free")
+        budget_max = get_vision_budget_max_usd()
+        model = get_openrouter_vlm_model()
 
         doc = fitz.open(path)
         num_pages = len(doc)
