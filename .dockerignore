@@ -1,0 +1,10 @@
+# Avoid copying build artifacts and local data into the image
+.refinery/
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.git/
+*.md
+!README.md
+data/*.pdf
