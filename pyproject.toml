@@ -1,3 +1,11 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
 [project]
 name = "document-intelligence-refinery"
 version = "0.1.0"
@@ -15,3 +23,7 @@ dependencies = [
 ]
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+
+[project.scripts]
+triage = "src.cli.triage:main"
+extract = "src.cli.extract:main"

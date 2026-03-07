@@ -126,8 +126,8 @@ def _classify_layout_complexity(pages_metrics: list[dict]) -> LayoutComplexity:
         return LayoutComplexity.FIGURE_HEAVY
     if multi_column_indicators >= max(1, n_sample // 2):
         return LayoutComplexity.MULTI_COLUMN
-    # Table-heavy: we don't have table detection here; use mixed for table-heavy docs (Phase 2 can refine)
-    if table_indicators >= n_sample // 2:
+    # Table-heavy: we don't have table detection here; require at least one indicator (Phase 2 can refine)
+    if table_indicators >= max(1, n_sample // 2):
         return LayoutComplexity.TABLE_HEAVY
     if multi_column_indicators > 0 or figure_indicators > 0:
         return LayoutComplexity.MIXED
