@@ -11,6 +11,7 @@ Requires-Dist: docling>=2.0
 Requires-Dist: langdetect>=1.0
 Requires-Dist: pyyaml>=6.0
 Requires-Dist: pytest>=8.0
+Requires-Dist: chromadb>=0.4.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.0; extra == "dev"
 
@@ -82,4 +83,24 @@ uv sync
 
   ```bash
   uv run pytest tests/test_extraction.py -v
+  ```
+
+## Phase 3 (Chunking, PageIndex, Vector Store)
+
+- **Chunk** an extraction and build PageIndex + vector store:
+
+  ```bash
+  uv run python -m src.cli.index .refinery/extractions/doc_id.json
+  ```
+
+  Outputs: `.refinery/pageindex/{doc_id}.json`, `.refinery/ldus/{doc_id}.json`, and ChromaDB at `.refinery/vector_db` (unless `--no-vector`).
+
+  Options: `--no-vector`, `--repo-root`, `--vector-path`
+
+- **Components**: ChunkingEngine (ExtractedDocument → LDUs with five rules), ChunkValidator, content_hash; PageIndex builder (section tree + heuristic summaries); VectorStore (ChromaDB, optional section filter for retrieval). PageIndex-aware search: `pageindex_top_sections(pi, topic)` then `store.search(query, section_titles=...)`.
+
+- **Tests**:
+
+  ```bash
+  uv run pytest tests/test_chunking.py -v
   ```

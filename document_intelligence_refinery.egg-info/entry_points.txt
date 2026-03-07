@@ -1,3 +1,4 @@
 [console_scripts]
 extract = src.cli.extract:main
+index = src.cli.index:main
 triage = src.cli.triage:main
