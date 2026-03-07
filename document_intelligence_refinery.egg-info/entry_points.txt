@@ -1,2 +1,3 @@
 [console_scripts]
+extract = src.cli.extract:main
 triage = src.cli.triage:main

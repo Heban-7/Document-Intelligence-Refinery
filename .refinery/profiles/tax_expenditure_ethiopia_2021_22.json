@@ -1,0 +1,11 @@
+{
+  "doc_id": "tax_expenditure_ethiopia_2021_22",
+  "file_name": "tax_expenditure_ethiopia_2021_22.pdf",
+  "num_pages": 60,
+  "origin_type": "native_digital",
+  "layout_complexity": "multi_column",
+  "domain_hint": "financial",
+  "estimated_extraction_cost": "needs_layout_model",
+  "language": "en",
+  "language_confidence": 0.9999976736636473
+}

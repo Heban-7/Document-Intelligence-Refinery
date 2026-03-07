@@ -50,7 +50,7 @@ uv sync
   uv run python -m src.cli.triage data/your.pdf
   ```
 
-  Or use the script entry point: `uv run triage data/your.pdf`
+  After `uv sync`, you can also run: `uv run triage data/your.pdf`
 
   Options: `--no-save` (print only), `--repo-root PATH`
 
@@ -61,3 +61,25 @@ uv sync
   ```
 
   Integration tests require the four corpus PDFs in `data/`; unit tests run without them.
+
+## Phase 2 (Multi-Strategy Extraction)
+
+- **Run triage + extraction** on a PDF or folder (writes profiles, `ExtractedDocument` JSON, and ledger):
+
+  ```bash
+  uv run python -m src.cli.extract data/your.pdf
+  # or folder: uv run python -m src.cli.extract data/
+  # or: uv run extract data/your.pdf
+  ```
+
+  Outputs: `.refinery/profiles/{doc_id}.json`, `.refinery/extractions/{doc_id}.json`, `.refinery/extraction_ledger.jsonl`
+
+  Options: `--output-dir`, `--no-save-profile`, `--no-escalation`
+
+- **Strategies**: A (pdfplumber fast text), B (Docling layout), C (OpenRouter VLM). Router selects from `DocumentProfile` and escalates when confidence &lt; threshold (see `rubric/extraction_rules.yaml`). For Strategy C set `OPENROUTER_API_KEY` (and optionally `OPENROUTER_VLM_MODEL`).
+
+- **Tests**:
+
+  ```bash
+  uv run pytest tests/test_extraction.py -v
+  ```
