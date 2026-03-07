@@ -72,9 +72,12 @@ def step3_pageindex(doc_id: str) -> dict | None:
     pi = build_page_index(doc, ldus)
     save_page_index(pi, REPO_ROOT)
     print("\n=== Step 3: PageIndex ===")
-    print("Section tree:")
-    for sec in pi.sections:
-        print(f"  - {sec.title} (pp. {sec.page_start}-{sec.page_end})")
+    print("Section tree (nested):")
+    def _print_tree(nodes, indent=0):
+        for n in nodes:
+            print(f"  {'  ' * indent}- {n.title} (pp. {n.page_start}-{n.page_end})" + (f" path={n.path}" if n.path else ""))
+            _print_tree(n.child_sections, indent + 1)
+    _print_tree(pi.sections)
     return pi.model_dump(mode="json")
 
 

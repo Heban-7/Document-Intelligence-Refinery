@@ -1,6 +1,7 @@
 """
 Query tools: pageindex_navigate, semantic_search, structured_query.
 Used by the query agent to answer with ProvenanceChain.
+PageIndex supports nested section hierarchy and topic-based navigation (see PageIndex.find_sections_by_topic).
 """
 from __future__ import annotations
 
@@ -28,6 +29,7 @@ def pageindex_navigate(
 ) -> list[str]:
     """
     Navigate PageIndex by topic; return section titles to narrow search.
+    Uses the document's section tree and topic-based scoring (title, summary, entities).
     If doc_id given, load that doc's PageIndex; else scan .refinery/pageindex for first match.
     """
     root = repo_root or Path.cwd()
@@ -39,12 +41,37 @@ def pageindex_navigate(
         if pi:
             return pageindex_top_sections(pi, topic, top_k=top_k)
         return []
-    for path in sorted(index_dir.glob("*.json")):
-        pi = PageIndex.model_validate_json(path.read_text(encoding="utf-8"))
+    for p in sorted(index_dir.glob("*.json")):
+        pi = PageIndex.model_validate_json(p.read_text(encoding="utf-8"))
         titles = pageindex_top_sections(pi, topic, top_k=top_k)
         if titles:
             return titles
     return []
+
+
+def pageindex_navigate_with_paths(
+    topic: str,
+    doc_id: str | None = None,
+    repo_root: Path | None = None,
+    top_k: int = 5,
+) -> list[tuple[str, str]]:
+    """
+    Topic-based navigation returning (section_title, path) for each top section.
+    Path is the hierarchical path from root (e.g. "/Introduction/Background").
+    Useful for provenance and "see Section X / Y" citations.
+    """
+    root = repo_root or Path.cwd()
+    pi = load_page_index(doc_id, root) if doc_id else None
+    if pi is None and not doc_id:
+        index_dir = root / ".refinery" / "pageindex"
+        if index_dir.exists():
+            for p in sorted(index_dir.glob("*.json")):
+                pi = PageIndex.model_validate_json(p.read_text(encoding="utf-8"))
+                break
+    if pi is None:
+        return []
+    hits = pi.find_sections_by_topic(topic, top_k=top_k)
+    return [(node.title, path) for _score, node, path in hits]
 
 
 def semantic_search(

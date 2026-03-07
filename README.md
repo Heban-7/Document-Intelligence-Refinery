@@ -109,7 +109,7 @@ uv sync
 
   Options: `--no-vector`, `--repo-root`, `--vector-path`
 
-- **Components**: ChunkingEngine (ExtractedDocument → LDUs with five rules), ChunkValidator, content_hash; PageIndex builder (section tree + heuristic summaries); VectorStore (ChromaDB, optional section filter for retrieval). PageIndex-aware search: `pageindex_top_sections(pi, topic)` then `store.search(query, section_titles=...)`.
+- **Components**: ChunkingEngine (ExtractedDocument → LDUs with five rules), ChunkValidator, content_hash; **PageIndex** with nested section hierarchy (from numbered headings, e.g. 1., 1.1.) and traversal API (`get_by_path`, `get_by_id`, `flatten_depth_first`, `find_sections_by_topic`); topic-based navigation returns section titles for vector filter. VectorStore (ChromaDB, optional section filter). PageIndex-aware search: `pageindex_navigate(question, doc_id)` then `store.search(query, section_titles=...)`.
 
 - **Tests**:
 
