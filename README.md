@@ -87,3 +87,24 @@ uv sync
   ```bash
   uv run pytest tests/test_chunking.py -v
   ```
+
+## Phase 4 (Query Agent & Provenance)
+
+- **Query** the indexed corpus (run Phase 3 first):
+
+  ```bash
+  uv run python -m src.cli.query "What is the total revenue?"
+  # or: uv run query "Your question"
+  ```
+
+  Returns JSON with `answer` and `provenance` (ProvenanceChain: document_name, page_number, content_hash, etc.).
+
+- **Audit** a claim:
+
+  ```bash
+  uv run query "The report states revenue was 4.2B in Q3" --audit
+  ```
+
+  Returns `verified` with ProvenanceChain or `not_found`.
+
+- **Components**: ProvenanceItem/ProvenanceChain; query tools (pageindex_navigate, semantic_search, structured_query); QueryAgent; FactTableStore (SQLite); audit_claim in audit.py. Fact table is populated when you run `index` on an extraction.

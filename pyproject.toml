@@ -29,3 +29,4 @@ dev = ["pytest>=8.0"]
 triage = "src.cli.triage:main"
 extract = "src.cli.extract:main"
 index = "src.cli.index:main"
+query = "src.cli.query:main"

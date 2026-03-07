@@ -12,13 +12,15 @@ from pathlib import Path
 from src.agents.chunker import ChunkingEngine
 from src.agents.indexer import build_page_index, save_page_index
 from src.data.vector_store import VectorStore
+from src.data.fact_table import FactTableStore
 from src.models.extraction import ExtractedDocument
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Chunk extraction, build PageIndex, ingest into vector store.")
+    parser = argparse.ArgumentParser(description="Chunk extraction, build PageIndex, ingest into vector store and fact table.")
     parser.add_argument("extraction_path", type=Path, help="Path to ExtractedDocument JSON (e.g. .refinery/extractions/doc_id.json)")
     parser.add_argument("--no-vector", action="store_true", help="Skip vector store ingest")
+    parser.add_argument("--no-facts", action="store_true", help="Skip fact table ingest")
     parser.add_argument("--repo-root", type=Path, default=None, help="Repo root (default: cwd)")
     parser.add_argument("--vector-path", type=Path, default=None, help="ChromaDB persist path (default: .refinery/vector_db)")
     args = parser.parse_args()
@@ -47,6 +49,10 @@ def main() -> int:
         store = VectorStore(persist_path=vector_path)
         n = store.ingest_ldus(ldus, doc.doc_id)
         print(f"Ingested {n} LDUs into vector store at {vector_path}", file=sys.stderr)
+    if not args.no_facts:
+        fact_store = FactTableStore(repo_root / ".refinery" / "facts.db")
+        n_facts = fact_store.ingest_document(doc)
+        print(f"Ingested {n_facts} fact rows into SQLite", file=sys.stderr)
 
     # Write LDUs JSON for inspection
     out_ldus = repo_root / ".refinery" / "ldus" / f"{doc.doc_id}.json"
