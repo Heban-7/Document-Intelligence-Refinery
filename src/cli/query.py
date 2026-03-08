@@ -21,6 +21,7 @@ def main() -> int:
     parser.add_argument("--audit", action="store_true", help="Audit mode: verify claim, return provenance or not_found")
     parser.add_argument("--repo-root", type=Path, default=None, help="Repo root (default: cwd)")
     parser.add_argument("--no-pageindex", action="store_true", help="Skip PageIndex navigation")
+    parser.add_argument("--trace", action="store_true", help="Include tool_trace in output (verifiable orchestration)")
     args = parser.parse_args()
 
     repo_root = args.repo_root or Path.cwd()
@@ -40,8 +41,20 @@ def main() -> int:
         return 0 if status == "verified" else 1
 
     agent = QueryAgent(vector_store=store, fact_store=fact_store, repo_root=repo_root)
-    answer, chain = agent.query(args.query, doc_id=args.doc_id, use_pageindex=not args.no_pageindex)
-    out = {"answer": answer, "provenance": chain.model_dump(mode="json")}
+    if args.trace:
+        result = agent.query_with_trace(
+            args.query, doc_id=args.doc_id, use_pageindex=not args.no_pageindex
+        )
+        out = {
+            "answer": result.answer,
+            "provenance": result.provenance.model_dump(mode="json"),
+            "tool_trace": [t.model_dump(mode="json") for t in result.tool_trace],
+        }
+    else:
+        answer, chain = agent.query(
+            args.query, doc_id=args.doc_id, use_pageindex=not args.no_pageindex
+        )
+        out = {"answer": answer, "provenance": chain.model_dump(mode="json")}
     print(json.dumps(out, indent=2))
     return 0
 

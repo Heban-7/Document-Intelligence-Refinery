@@ -126,7 +126,7 @@ uv sync
   # or: uv run query "Your question"
   ```
 
-  Returns JSON with `answer` and `provenance` (ProvenanceChain: document_name, page_number, content_hash, etc.).
+  Returns JSON with `answer` and `provenance` (ProvenanceChain: document_name, page_number, content_hash, etc.). Use `--trace` to include a verifiable **tool_trace** (order of tool calls: pageindex_navigate → semantic_search → structured_query).
 
 - **Audit** a claim:
 
@@ -136,7 +136,7 @@ uv sync
 
   Returns `verified` with ProvenanceChain or `not_found`.
 
-- **Components**: ProvenanceItem/ProvenanceChain; query tools (pageindex_navigate, semantic_search, structured_query); QueryAgent; FactTableStore (SQLite); audit_claim in audit.py. Fact table is populated when you run `index` on an extraction.
+- **Components**: **Query Interface Agent** with multi-tool orchestration: (1) pageindex_navigate for topic-based section scoping, (2) semantic_search over the vector store, (3) structured_query over the fact table when the question suggests numbers/tables. Every run can return a verifiable `tool_trace`. ProvenanceItem/ProvenanceChain; query tools; FactTableStore (SQLite); audit_claim in audit.py. Fact table is populated when you run `index` on an extraction.
 
 ## Phase 5 (Packaging & demo)
 
